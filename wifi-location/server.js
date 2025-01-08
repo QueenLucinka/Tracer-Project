@@ -8,6 +8,11 @@ const path = require('path');  // Add path module to serve static files
 const uri = '<your_mongodb_connection_string>';  // MongoDB connection string
 const client = new MongoClient(uri);  // Create the MongoDB client instance
 
+const aioUsername = '<yourAIOuserName>';
+const aioKey = 'YOUR_ADAFRUIT_IO_KEY';
+const wifiMetadataFeed = 'wifi-location-feed';
+const googleApiKey = 'YOUR_GOOGLE_MAPS_API_KEY';
+
 // Create an express app instance
 const app = express();
 const port = 3001;  // Port number for the express server
