@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where Was Bruno?</title>
+  <!-- Include Leaflet CSS for map styling -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Include Leaflet JS for map functionality -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Include Flatpickr CSS for date and time pickers -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.3/flatpickr.min.css" />
+  
+  <style>
+    /* Map container styling */
+    #map {
+      width: 100%;
+      height: 500px;
+    }
+    /* Styling for the date pickers */
+    #datepicker, #toDatepicker {
+      margin: 10px;
+    }
+    /* Styling for the submit button */
+    #submitBtn {
+      margin: 10px;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header and description of the page -->
+  <h2>Where was Bruno?</h2>
+  <p>Track Bruno's movement and geofencing in real-time!</p>
+
+  <!-- Date range selectors -->
+  <label for="fromDatepicker">From Date and Time: </label>
+  <input type="text" id="fromDatepicker" placeholder="Select start date and time" />
+
+  <label for="toDatepicker">To Date and Time: </label>
+  <input type="text" id="toDatepicker" placeholder="Select end date and time" />
+
+  <!-- Submit button to fetch data -->
+  <button id="submitBtn">Submit</button>
+
+  <!-- Map container to display the map -->
+  <div id="map"></div>
+
+  <!-- Include Flatpickr JS for date and time functionality -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.3/flatpickr.min.js"></script>
+
+  <script>
+    // Initialize map with default position (coordinates of Bruno's home)
+    const map = L.map('map').setView([59.5796937, 17.5120002], 13); // Default position
+
+    // Set the tile layer for the map (using OpenStreetMap tiles)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    //Geofence
+    const geofenceCenter = [LATITUDE, LONGITUDE]; // Replace with your actual home coordinates
+    const geofenceRadius = 13.5; // Geofence radius in meters
+
+    
+    // Create a geofence circle and add it to the map
+    L.circle(geofenceCenter, { radius: geofenceRadius, color: 'red' }).addTo(map);
+
+    // Initialize date pickers using Flatpickr library
+    flatpickr('#fromDatepicker', { 
+      enableTime: true, 
+      dateFormat: 'Y-m-d H:i', 
+      time_24hr: true, 
+      defaultDate: new Date()  // Default to current time
+    });
+
+    flatpickr('#toDatepicker', { 
+      enableTime: true, 
+      dateFormat: 'Y-m-d H:i', 
+      time_24hr: true, 
+      defaultDate: new Date()  // Default to current time
+    });
+
+    // Function to fetch location data from the server (MongoDB)
+    async function fetchLocationData(fromDate, toDate) {
+      console.log('Fetching data from MongoDB...');
+      
+      // Send a request to the server to get location data
+      const response = await fetch('http://localhost:3001/locations');
+      const data = await response.json();
+
+      // Array to store coordinates for the route
+      let routeCoordinates = [];
+
+      // Process each location fetched from MongoDB
+      data.forEach(location => {
+        // Adjust MongoDB timestamp by subtracting 1 hour (because of timezone difference)
+        let locationDate = new Date(location.timestamp);
+        locationDate.setHours(locationDate.getHours() - 1);  // Subtract 1 hour
+
+        console.log('Adjusted MongoDB Timestamp:', locationDate);
+
+        // Convert the selected date range to UTC for comparison
+        fromDate = new Date(fromDate.toUTCString());
+        toDate = new Date(toDate.toUTCString());
+
+        // If location's timestamp is within the selected range, add it to the map
+        if (locationDate >= fromDate && locationDate <= toDate) {
+          console.log('Adding marker for:', location.latitude, location.longitude);
+          
+          // Add a marker for each valid location within the time range
+          L.marker([location.latitude, location.longitude])
+            .addTo(map)
+            .bindPopup(`Latitude: ${location.latitude}<br>Longitude: ${location.longitude}<br>Time: ${locationDate}`)
+            .openPopup();
+
+          // Add the coordinates to the route
+          routeCoordinates.push([location.latitude, location.longitude]);
+        }
+      });
+
+      // Draw a polyline (route) if there are valid coordinates
+      if (routeCoordinates.length > 1) {
+        L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
+      } else {
+        alert('No locations found in this time range');
+      }
+    }
+
+    // Event listener for the submit button
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      const fromDate = new Date(document.getElementById('fromDatepicker').value);
+      const toDate = new Date(document.getElementById('toDatepicker').value);
+
+      // Check if valid date range is selected
+      if (fromDate && toDate) {
+        fetchLocationData(fromDate, toDate);
+      } else {
+        alert('Please select a valid date range');
+      }
+    });
+  </script>
+
+</body>
+</html>
