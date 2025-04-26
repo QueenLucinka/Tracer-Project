@@ -4,12 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bruno's Last Position</title>
-  <!-- Include Leaflet CSS for map styling -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <!-- Include Leaflet JS for map functionality -->
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
   <style>
-    /* Styling for the map container */
     #map {
       width: 100%;
       height: 500px;
@@ -18,54 +17,39 @@
 </head>
 <body>
 
-  <!-- Header for the page -->
   <h2>Bruno's Last Position</h2>
-  <!-- Map container -->
   <div id="map"></div>
 
   <script>
-    // Initialize the map with a default position (coordinates of Bruno's home)
-    const map = L.map('map').setView([LATITUDE, LONGITUDE], 13); // Default position, replace with your default position
+    const map = L.map('map').setView([LATITUDE, LONGITUDE], 13);
 
-    // Set the tile layer for the map (using OpenStreetMap tiles)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    //geofence
-    const geofenceCenter = [LATITUDE, LONGITUDE]; // Replace with your actual home coordinates
-    const geofenceRadius = 13.5; // Geofence radius in meters
+    const geofenceCenter = [LATITUDE, LONGITUDE];
+    const geofenceRadius = 13.5;
 
-    
-    // Create a geofence circle and add it to the map
     L.circle(geofenceCenter, { radius: geofenceRadius, color: 'red' }).addTo(map);
 
-    // Function to fetch the last position of Bruno from the server (MongoDB)
     async function showLastPosition() {
-      // Send a request to the server to fetch the location data
       const response = await fetch('http://localhost:3001/locations');
       const data = await response.json();
 
-      // Check if there is location data
       if (data.length > 0) {
-        // Get the last data entry as the most recent position
-        const lastLocation = data[data.length - 1];  // Assuming the last data entry is the latest position
+        const lastLocation = data[data.length - 1];
         const { latitude, longitude, timestamp } = lastLocation;
 
-        // Add a marker for the last position
         L.marker([latitude, longitude]).addTo(map)
           .bindPopup(`Last Position: <br>Latitude: ${latitude}<br>Longitude: ${longitude}<br>Time: ${timestamp}`)
           .openPopup();
-        
-        // Center the map on the last position
+
         map.setView([latitude, longitude], 13);
       } else {
-        // Alert the user if no location data is found
         alert('No location data found!');
       }
     }
 
-    // Call the function to show the last position on the map
     showLastPosition();
   </script>
 
