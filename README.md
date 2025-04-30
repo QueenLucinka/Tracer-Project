@@ -1,7 +1,7 @@
 # TRACER Project
 
 ## Project Overview
-The **TRACER Project** is designed to track and visualize the movements of a pet (Bruno) using a GPS-based tracking system. The system uses an ESP32 device to send Wi-Fi data and location updates to a server. The server stores the data in MongoDB, and the front end uses Leaflet.js to visualize the data on a map. The project also integrates geofencing and allows users to check the real-time location of Bruno as well as historical data.
+The **TRACER Project** is designed to track and visualize the movements of a pet (Bruno) using a WIFI position-based tracking system. The system uses an ESP32 device to send Wi-Fi data and location updates to a server. The server stores the data in MongoDB, and the front end uses Leaflet.js to visualize the data on a map. The project also integrates geofencing and allows users to check the real-time location of Bruno as well as historical data.
 
 ## Project Structure
 
